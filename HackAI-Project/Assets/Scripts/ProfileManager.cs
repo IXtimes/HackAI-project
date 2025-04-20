@@ -6,25 +6,34 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 
 public class GameData {
-    public float highestScore;
-    public float lowestScore;
-    public float[] data;
+    public string name;
+    public List<float> data;
+    public GameData() {
+        data = new List<float>();
+    }
 }
 
 public class Profile {
     public string name;
     public Texture2D profilePicture;
-    public Dictionary<string, GameData[]> gameData;
-    public Dictionary<string, int[]> moodData;
+    public List<float> personalBests;
+    public List<float> personalLows;
+    public List<GameData> gameHistory;
+    public List<List<int>> moodData;
     public int currentStreak; 
 
     public Profile() {
         name = "";
         profilePicture = null;
-        gameData = new Dictionary<string, GameData[]>();
 
-        // Create sample 
-        moodData = new Dictionary<string, int[]>();
+        personalBests = new List<float>();
+        personalLows = new List<float>();
+        gameHistory = new List<GameData>();
+        moodData = new List<List<int>>();
+        moodData.Add(
+            new List<int>{0, 0, 0, 0, 0}
+        );
+
         currentStreak = 0;
     }
 }
@@ -32,9 +41,8 @@ public class Profile {
 [System.Serializable]
 public class SerializableGameData
 {
-    public float highestScore;
-    public float lowestScore;
-    public float[] data;
+    public string name;
+    public List<float> data;
 }
 
 [System.Serializable]
@@ -42,12 +50,15 @@ public class SerializableProfile
 {
     public string name;
     public string profilePicturePath;
-    public List<string> gameKeys;
-    public List<SerializableGameData[]> gameValues;
-    public List<string> moodKeys;
-    public List<int[]> moodValues;
+
+    public List<float> personalBests;
+    public List<float> personalLows;
+    public List<SerializableGameData> gameHistory;
+    public List<List<int>> moodData;
+
     public int currentStreak;
 }
+
 public class ProfileManager : MonoBehaviour
 {
     public Profile playerProfile;
@@ -75,41 +86,37 @@ public class ProfileManager : MonoBehaviour
 
     public void SaveProfile(string savePath)
     {
-        // Save texture to file
+        // Save profile picture to disk
         string imagePath = Path.Combine(Application.persistentDataPath, playerProfile.name + "_pic.png");
-        byte[] imageData = playerProfile.profilePicture.EncodeToPNG();
-        File.WriteAllBytes(imagePath, imageData);
+        if (playerProfile.profilePicture != null)
+        {
+            byte[] imageBytes = playerProfile.profilePicture.EncodeToPNG();
+            File.WriteAllBytes(imagePath, imageBytes);
+        }
 
-        // Build serializable object
+        // Convert game history to serializable format
+        List<SerializableGameData> serialGameHistory = new List<SerializableGameData>();
+        foreach (var g in playerProfile.gameHistory)
+        {
+            serialGameHistory.Add(new SerializableGameData
+            {
+                name = g.name,
+                data = new List<float>(g.data)
+            });
+        }
+
+        // Build serializable profile
         SerializableProfile sp = new SerializableProfile
         {
             name = playerProfile.name,
             profilePicturePath = imagePath,
-            gameKeys = new List<string>(playerProfile.gameData.Keys),
-            gameValues = new List<SerializableGameData[]>(),
-            moodKeys = new List<string>(playerProfile.moodData.Keys),
-            moodValues = new List<int[]>(),
+            personalBests = new List<float>(playerProfile.personalBests),
+            personalLows = new List<float>(playerProfile.personalLows),
+            gameHistory = serialGameHistory,
+            moodData = new List<List<int>>(playerProfile.moodData),
             currentStreak = playerProfile.currentStreak
         };
 
-        foreach (var gameEntry in playerProfile.gameData)
-        {
-            var serialArray = gameEntry.Value.Select(gd => new SerializableGameData
-            {
-                highestScore = gd.highestScore,
-                lowestScore = gd.lowestScore,
-                data = gd.data
-            }).ToArray();
-
-            sp.gameValues.Add(serialArray);
-        }
-
-        foreach (var mood in playerProfile.moodData.Values)
-        {
-            sp.moodValues.Add(mood);
-        }
-
-        // Convert to JSON and save
         string json = JsonUtility.ToJson(sp, true);
         File.WriteAllText(savePath, json);
     }
@@ -118,45 +125,52 @@ public class ProfileManager : MonoBehaviour
     {
         if (!File.Exists(savePath))
         {
-            Debug.LogWarning("Profile file not found at: " + savePath);
+            Debug.LogWarning("Profile file not found: " + savePath);
             playerProfile = new Profile();
-            return false; // Or create and return a default Profile if needed
+            return false;
         }
 
         string json = File.ReadAllText(savePath);
+        Debug.Log(json);
         SerializableProfile sp = JsonUtility.FromJson<SerializableProfile>(json);
 
-        // Load image
-        byte[] imageData = File.ReadAllBytes(sp.profilePicturePath);
-        Texture2D tex = new Texture2D(2, 2);
-        tex.LoadImage(imageData);
+        // Load profile picture from disk
+        Texture2D texture = new Texture2D(2, 2);
+        if (File.Exists(sp.profilePicturePath))
+        {
+            byte[] imageBytes = File.ReadAllBytes(sp.profilePicturePath);
+            texture.LoadImage(imageBytes);
+        }
 
-        // Build original profile object
+        // Convert serializable game history back to GameData
+        List<GameData> gameHistory = new List<GameData>();
+        foreach (var g in sp.gameHistory)
+        {
+            gameHistory.Add(new GameData
+            {
+                name = g.name,
+                data = new List<float>(g.data)
+            });
+        }
+
+        List<List<int>> moodData = sp.moodData != null ? new List<List<int>>(sp.moodData) : new List<List<int>>();
+
+        if (moodData.Count == 0)
+        {
+            moodData.Add(new List<int> { 0, 0, 0, 0, 0 });  // Default entry
+        }
+
+        // Build final profile
         Profile profile = new Profile
         {
             name = sp.name,
-            profilePicture = tex,
-            gameData = new Dictionary<string, GameData[]>(),
-            moodData = new Dictionary<string, int[]>(),
+            profilePicture = texture,
+            personalBests = new List<float>(sp.personalBests),
+            personalLows = new List<float>(sp.personalLows),
+            gameHistory = gameHistory,
+            moodData = moodData,
             currentStreak = sp.currentStreak
         };
-
-        for (int i = 0; i < sp.gameKeys.Count; i++)
-        {
-            var deserializedArray = sp.gameValues[i].Select(sgd => new GameData
-            {
-                highestScore = sgd.highestScore,
-                lowestScore = sgd.lowestScore,
-                data = sgd.data
-            }).ToArray();
-
-            profile.gameData.Add(sp.gameKeys[i], deserializedArray);
-        }
-
-        for (int i = 0; i < sp.moodKeys.Count; i++)
-        {
-            profile.moodData.Add(sp.moodKeys[i], sp.moodValues[i]);
-        }
 
         playerProfile = profile;
         return true;
