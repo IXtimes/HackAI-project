@@ -10,5 +10,6 @@ public class GameHintController : MonoBehaviour {
         startGame?.Invoke();
 
         // Disable this hint screen
+        gameObject.SetActive(false);
     }
 }

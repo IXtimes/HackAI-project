@@ -4,135 +4,90 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using UnityEngine.EventSystems;
+using UnityEngine.Events;
 
-public class BreathingGame : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
+public class BreathingGame : MonoBehaviour
 {
-    public TextMeshProUGUI statusText;
-    public TextMeshProUGUI roundText;
-    public Button holdButton;
+    [SerializeField] TextMeshProUGUI timerText;
+    [SerializeField] TextMeshProUGUI resultText;
+    [SerializeField] GameObject breatheButton;
+    [SerializeField] GameObject finishButton;
+    float internalTimer;
+    float startTime;
+    bool breathingIn;
+    public List<float> resultData;
+    public Vector2 breatheInTime;
+    bool gameActive = false;
+    public UnityEvent endGame;
 
-    public List<float> timingResults = new List<float>(); // Public list to track performance
+    public void SetupGame() {
+        // Activate the game
+        gameActive = true;
 
-    private bool isHolding = false;
-    private bool gameActive = false;
-    private int roundCount = 0;
-
-    private float targetHoldTime = 0f;
-    private float holdStartTime = 0f;
-
-    void Start()
-    {
-        if (holdButton == null || statusText == null || roundText == null)
-        {
-            Debug.LogError("❌ UI references not assigned in Inspector");
-            return;
-        }
-
-        roundCount = 0;
-        timingResults.Clear();
-        roundText.text = "Round: 0 / 7";
-        statusText.text = "Touch & Hold to Start";
-        holdButton.gameObject.SetActive(true);
+        // Set the breathing state to breathing out to idle
+        breathingIn = false;
     }
 
     void Update()
     {
-        // No need to check anything here — game logic handled via input events
-    }
+        // Only process updates when the game is active
+        if(!gameActive) return;
 
-    public void OnPointerDown(PointerEventData eventData)
-    {
-        if (!gameActive && roundCount < 7)
-        {
-            gameActive = true;
-            isHolding = true;
-            StartCoroutine(PerformRound());
-        }
-    }
+        // Decrement the internal timer
+        internalTimer -= Time.deltaTime;
 
-    public void OnPointerUp(PointerEventData eventData)
-    {
-        isHolding = false;
-
-        if (gameActive)
-        {
-            float actualHoldTime = Time.time - holdStartTime;
-            float difference = Mathf.Abs(targetHoldTime - actualHoldTime);
-            float rounded = Mathf.Round(difference * 10f) / 10f;
-
-            timingResults.Add(rounded);
-            Debug.Log($"🎯 Target: {targetHoldTime:F1}s | Held: {actualHoldTime:F1}s | Diff: {rounded}");
-
-            roundCount++;
-            roundText.text = $"Round: {roundCount} / 7";
-            gameActive = false;
-
-            if (roundCount >= 7)
-            {
-                // ✅ Show all round results
-                string resultsText = "✅ All rounds complete!\n\nYour Results:\n";
-                for (int i = 0; i < timingResults.Count; i++)
-                {
-                    resultsText += $"Round {i + 1}: {timingResults[i]:F1} sec\n";
-                }
-                statusText.text = resultsText;
+        // Draw text elements based on the current state of the game
+        if(breathingIn) {
+            // Hide the stop button and result text
+            finishButton.SetActive(false);
+            resultText.text = "";
+            if(internalTimer <= startTime - 2f) {
+                // Hide the timer
+                timerText.text = "Release and breathe out when you think the timer has hit 0s!";
+            } else {
+                // Show the timer
+                timerText.text = $"Breathe in for {Mathf.Round(internalTimer * 10f) / 10f}s...";
             }
+        } else {
+            // Show the stop button
+            finishButton.SetActive(true);
+            // The timer text encourages to breathe out and play again.
+            timerText.text = "Breathe out... and when you are ready, breathe in again.\nIf you are done for today, you can quit!";
+            if(resultData.Count > 0)
+                resultText.text = $"You were {resultData[resultData.Count - 1]}s off from 0s.";
             else
-            {
-                statusText.text = $"You were off by {rounded:F1} seconds";
-                StartCoroutine(BreathOutPause());
-            }
+                resultText.text = "";
         }
     }
 
-    IEnumerator PerformRound()
-    {
-        statusText.text = "Get Ready...";
-        yield return new WaitForSeconds(1f);
+    public void ReleaseButton() {
+        // Ignore if not breathing in
+        if(!breathingIn) return;
 
-        // Set target time
-        targetHoldTime = Random.Range(7f, 10f); // Breathe In countdown from 7 to 10
-        holdStartTime = Time.time;
+        // Otherwise we started breathing out
+        breathingIn = false;
 
-        float visibleTime = 2f;
-        float startTime = Time.time;
-        float countdown = targetHoldTime;
-
-        // Show countdown for first 2 seconds only
-        while (Time.time - startTime < visibleTime && countdown > 0)
-        {
-            if (!isHolding)
-            {
-                GameOver("Released too early!");
-                yield break;
-            }
-
-            countdown = targetHoldTime - (Time.time - startTime);
-            statusText.text = $"Breathe In: {countdown:F1}s";
-            yield return null;
-        }
-
-        // Hide timer but keep holding
-        statusText.text = "Keep Holding...";
-        while (isHolding)
-        {
-            yield return null;
-        }
-
-        // OnPointerUp will handle result calculation
+        // Calculate how far off the player was from the true end time, and log it in data.
+        resultData.Add(Mathf.Round(Mathf.Abs(internalTimer) * 10f) / 10f);
     }
 
-    IEnumerator BreathOutPause()
-    {
-        statusText.text = "Breathe Out...";
-        yield return new WaitForSeconds(3f);
-        statusText.text = "Touch & Hold to Start";
+    public void HoldingButton() {
+        // Ignore if not breathing out
+        if(breathingIn) return;
+
+        // Otherwise we started breathing in
+        breathingIn = true;
+
+        // Set the timer
+        startTime = Random.Range(breatheInTime.x, breatheInTime.y);
+        internalTimer = startTime;
     }
 
-    void GameOver(string reason)
-    {
-        Debug.LogWarning($"❌ Game Over: {reason}");
-        statusText.text = $"{reason}\nTap to try again";
+    public void ExitGame() {
+        // Deactivate the game
         gameActive = false;
+
+        // Callback to results screen
+        endGame?.Invoke();
     }
 }
