@@ -6,15 +6,21 @@ using System.Linq;
 using DG.Tweening;
 using TMPro;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 [Serializable]
 public class OnboardingEvent {
     public string event_name;
     public int event_index;
 }
+[Serializable]
+public class OnboardingLine {
+    public string line;
+    public float lineTime;
+}
 public class OnboardingManager : MonoBehaviour
 {
-    public string[] onboardingLines;
+    public OnboardingLine[] onboardingLines;
     public OnboardingEvent[] onboardingEvents;
     Dictionary<string, bool> onboardingEventStatus;
     ProfileManager profileManager;
@@ -41,10 +47,10 @@ public class OnboardingManager : MonoBehaviour
         profileManager = ProfileManager.Instance;
 
         // Set onboarding to the first line
-        onboardingText.text = onboardingLines[currentOnboardingLine];
+        onboardingText.text = onboardingLines[currentOnboardingLine].line;
 
         // Automatically call the next onboarding line
-        DOTween.Sequence().AppendInterval(0.5f).AppendCallback(GetNextOnboardingLine);
+        DOTween.Sequence().AppendInterval(onboardingLines[currentOnboardingLine].lineTime).AppendCallback(GetNextOnboardingLine);
     }
 
     public void CompleteEvent(string eventName) {
@@ -66,6 +72,7 @@ public class OnboardingManager : MonoBehaviour
                         onboardingSubmit.SetActive(false);
                         string savePath = Path.Combine(Application.persistentDataPath, "myProfile.json");
                         profileManager.SaveProfile(savePath);
+                        SceneManager.LoadScene("MainPage");
                         break;
                 }
         }
@@ -95,7 +102,7 @@ public class OnboardingManager : MonoBehaviour
         }
 
         // Set the onboarding text to the next line of onboarding
-        onboardingText.text = onboardingLines[currentOnboardingLine].Replace("<name>", profileManager.playerProfile.name);
+        onboardingText.text = onboardingLines[currentOnboardingLine].line.Replace("<name>", profileManager.playerProfile.name);
 
         // Enable the respective element based on the event 
         foreach(OnboardingEvent obEvent in onboardingEvents) { 
@@ -114,6 +121,6 @@ public class OnboardingManager : MonoBehaviour
         }
 
         // Automatically call the next onboarding line
-        DOTween.Sequence().AppendInterval(0.5f).AppendCallback(GetNextOnboardingLine);
+        DOTween.Sequence().AppendInterval(onboardingLines[currentOnboardingLine].lineTime).AppendCallback(GetNextOnboardingLine);
     }
 }

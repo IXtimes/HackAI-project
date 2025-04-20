@@ -791,23 +791,41 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   onboardingLines:
-  - Hello!
-  - Welcome to ThriveMind!
-  - We hope our games will help you relax and train your mind after a stressful day.
-  - First, what's your name?
-  - Nice to meet you <name>!
-  - How do you want to express yourself?
-  - Looking good!
-  - Thats all we need from you for your profile.
-  - We'll keep track of your progress automatically to show your growth.
-  - With that, lets play some games and relax!
+  - line: Hello!
+    lineTime: 2
+  - line: Welcome to BrainThought
+    lineTime: 3
+  - line: We have some games to help you relax.
+    lineTime: 3
+  - line: And to assess your emotions.
+    lineTime: 3
+  - line: We hope we can calm down any stressful days you might of had.
+    lineTime: 5
+  - line: First, what is your name?
+    lineTime: 0
+  - line: Nice to meet you, <name>!
+    lineTime: 3
+  - line: Lets express yourself! Choose a profile picture.
+    lineTime: 0
+  - line: Looking good!
+    lineTime: 2
+  - line: That's all we will need for your profile!
+    lineTime: 3
+  - line: We'll use it to keep track of your progress as you play.
+    lineTime: 4
+  - line: And you can see your growth as you train your brain!
+    lineTime: 4
+  - line: With all that out of the way...
+    lineTime: 3
+  - line: Lets play some games!
+    lineTime: 0
   onboardingEvents:
   - event_name: username
-    event_index: 3
-  - event_name: profile_picture
     event_index: 5
+  - event_name: profile_picture
+    event_index: 7
   - event_name: finish
-    event_index: 9
+    event_index: 13
   onboardingText: {fileID: 1771771123}
   onboardingNameInput: {fileID: 1457381859}
   onboardingPhotoInput: {fileID: 704974259}
