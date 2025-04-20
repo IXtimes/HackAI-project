@@ -81,7 +81,7 @@ public class GraphPrinter : MonoBehaviour
 
             // Update the text of the bar
             TextMeshProUGUI barText = barChild.GetChild(0).GetComponent<TextMeshProUGUI>();
-            barText.text = $"{Mathf.Round(data[i].amount * 10f) / 10f}";
+            barText.text = $"{Mathf.Round(data[i].amount * 10f) / 10f:F1}";
 
             // Change the color of the bar and its text.
             barText.color = data[i].barColor;

@@ -5,20 +5,31 @@ using UnityEngine.UI;
 using TMPro;
 using UnityEngine.EventSystems;
 using UnityEngine.Events;
+using DG.Tweening;
 
 public class BreathingGame : MonoBehaviour
 {
     [SerializeField] TextMeshProUGUI timerText;
     [SerializeField] TextMeshProUGUI resultText;
+    [SerializeField] Transform breathePulse;
     [SerializeField] GameObject breatheButton;
     [SerializeField] GameObject finishButton;
     [SerializeField] GameResultController gameResultController;
+    AudioSource sfx;
+    [SerializeField] AudioClip breatheInClip;
+    [SerializeField] AudioClip breatheOutClip;
     float internalTimer;
     float startTime;
     bool breathingIn;
     public List<float> resultData;
     public Vector2 breatheInTime;
+    public Vector2 sizeBounds;
     bool gameActive = false;
+
+    void Awake()
+    {
+        sfx = GetComponent<AudioSource>();   
+    }
 
     public void SetupGame() {
         // Activate the game
@@ -43,7 +54,7 @@ public class BreathingGame : MonoBehaviour
             resultText.text = "";
             if(internalTimer <= startTime - 2f) {
                 // Hide the timer
-                timerText.text = "Release and breathe out when you think the timer has hit 0s!";
+                timerText.text = "Release when you think you're at 0s!";
             } else {
                 // Show the timer
                 timerText.text = $"Breathe in for {Mathf.Round(internalTimer * 10f) / 10f}s...";
@@ -52,7 +63,7 @@ public class BreathingGame : MonoBehaviour
             // Show the stop button
             finishButton.SetActive(true);
             // The timer text encourages to breathe out and play again.
-            timerText.text = "Breathe out... and when you are ready, breathe in again.\nIf you are done for today, you can quit!";
+            timerText.text = "Breathe out...";
             if(resultData.Count > 0)
                 resultText.text = $"You were {resultData[resultData.Count - 1]}s off from 0s.";
             else
@@ -69,6 +80,9 @@ public class BreathingGame : MonoBehaviour
 
         // Calculate how far off the player was from the true end time, and log it in data.
         resultData.Add(Mathf.Round(Mathf.Abs(internalTimer) * 10f) / 10f);
+
+        breathePulse.DOScale(Vector3.one * sizeBounds.y, 2f).From(breathePulse.localScale);
+        sfx.PlayOneShot(breatheOutClip);
     }
 
     public void HoldingButton() {
@@ -81,6 +95,9 @@ public class BreathingGame : MonoBehaviour
         // Set the timer
         startTime = Random.Range(breatheInTime.x, breatheInTime.y);
         internalTimer = startTime;
+
+        breathePulse.DOScale(Vector3.one * sizeBounds.x, 2f).From(Vector3.one);
+        sfx.PlayOneShot(breatheInClip);
     }
 
     public void ExitGame() {
