@@ -28,13 +28,7 @@ public class GraphPrinter : MonoBehaviour
         scope = initalScope;  
     }
 
-    void Update()
-    {
-        // Update the graph visuals
-        UpdateGraphGraphic(); 
-    }
-
-    void UpdateGraphGraphic() {
+    public void UpdateGraphGraphic() {
         // Determine the number of data points to draw
         int dataPoints = Mathf.Min(data.Length, scope);
         int difference = barGroup.childCount - dataPoints;
