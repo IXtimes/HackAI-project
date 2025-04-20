@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -13,14 +14,16 @@ public class GameData {
 public class Profile {
     public string name;
     public Texture2D profilePicture;
-    public Dictionary<string, GameData> gameData;
+    public Dictionary<string, GameData[]> gameData;
     public Dictionary<string, int[]> moodData;
     public int currentStreak; 
 
     public Profile() {
         name = "";
         profilePicture = null;
-        gameData = new Dictionary<string, GameData>();
+        gameData = new Dictionary<string, GameData[]>();
+
+        // Create sample 
         moodData = new Dictionary<string, int[]>();
         currentStreak = 0;
     }
@@ -40,7 +43,7 @@ public class SerializableProfile
     public string name;
     public string profilePicturePath;
     public List<string> gameKeys;
-    public List<SerializableGameData> gameValues;
+    public List<SerializableGameData[]> gameValues;
     public List<string> moodKeys;
     public List<int[]> moodValues;
     public int currentStreak;
@@ -83,20 +86,22 @@ public class ProfileManager : MonoBehaviour
             name = playerProfile.name,
             profilePicturePath = imagePath,
             gameKeys = new List<string>(playerProfile.gameData.Keys),
-            gameValues = new List<SerializableGameData>(),
+            gameValues = new List<SerializableGameData[]>(),
             moodKeys = new List<string>(playerProfile.moodData.Keys),
             moodValues = new List<int[]>(),
             currentStreak = playerProfile.currentStreak
         };
 
-        foreach (var gd in playerProfile.gameData.Values)
+        foreach (var gameEntry in playerProfile.gameData)
         {
-            sp.gameValues.Add(new SerializableGameData
+            var serialArray = gameEntry.Value.Select(gd => new SerializableGameData
             {
                 highestScore = gd.highestScore,
                 lowestScore = gd.lowestScore,
                 data = gd.data
-            });
+            }).ToArray();
+
+            sp.gameValues.Add(serialArray);
         }
 
         foreach (var mood in playerProfile.moodData.Values)
@@ -131,19 +136,21 @@ public class ProfileManager : MonoBehaviour
         {
             name = sp.name,
             profilePicture = tex,
-            gameData = new Dictionary<string, GameData>(),
+            gameData = new Dictionary<string, GameData[]>(),
             moodData = new Dictionary<string, int[]>(),
             currentStreak = sp.currentStreak
         };
 
         for (int i = 0; i < sp.gameKeys.Count; i++)
         {
-            profile.gameData.Add(sp.gameKeys[i], new GameData
+            var deserializedArray = sp.gameValues[i].Select(sgd => new GameData
             {
-                highestScore = sp.gameValues[i].highestScore,
-                lowestScore = sp.gameValues[i].lowestScore,
-                data = sp.gameValues[i].data
-            });
+                highestScore = sgd.highestScore,
+                lowestScore = sgd.lowestScore,
+                data = sgd.data
+            }).ToArray();
+
+            profile.gameData.Add(sp.gameKeys[i], deserializedArray);
         }
 
         for (int i = 0; i < sp.moodKeys.Count; i++)
