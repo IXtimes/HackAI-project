@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using UnityEngine.EventSystems;
+using UnityEngine.SceneManagement;
 
 public class BreathingGame : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
 {
@@ -15,10 +16,12 @@ public class BreathingGame : MonoBehaviour, IPointerDownHandler, IPointerUpHandl
 
     private bool isHolding = false;
     private bool gameActive = false;
+    private bool gameFinished = false;
     private int roundCount = 0;
 
     private float targetHoldTime = 0f;
     private float holdStartTime = 0f;
+    private float autoReturnDelay = 8f; // Time before auto-return to MainPage
 
     void Start()
     {
@@ -42,6 +45,12 @@ public class BreathingGame : MonoBehaviour, IPointerDownHandler, IPointerUpHandl
 
     public void OnPointerDown(PointerEventData eventData)
     {
+        if (gameFinished)
+        {
+            SceneManager.LoadScene("MainPage");
+            return;
+        }
+
         if (!gameActive && roundCount < 7)
         {
             gameActive = true;
@@ -75,7 +84,10 @@ public class BreathingGame : MonoBehaviour, IPointerDownHandler, IPointerUpHandl
                 {
                     resultsText += $"Round {i + 1}: {timingResults[i]:F1} sec\n";
                 }
+
                 statusText.text = resultsText;
+                gameFinished = true;
+                StartCoroutine(ReturnToMainAfterDelay());
             }
             else
             {
@@ -127,6 +139,12 @@ public class BreathingGame : MonoBehaviour, IPointerDownHandler, IPointerUpHandl
         statusText.text = "Breathe Out...";
         yield return new WaitForSeconds(3f);
         statusText.text = "Touch & Hold to Start";
+    }
+
+    IEnumerator ReturnToMainAfterDelay()
+    {
+        yield return new WaitForSeconds(autoReturnDelay);
+        SceneManager.LoadScene("MainPage");
     }
 
     void GameOver(string reason)
