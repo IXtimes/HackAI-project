@@ -79,6 +79,7 @@ public class MainDashboard : MonoBehaviour
         prompt += "  Breath Sync - breathing, counting";
         prompt += "  Clear Sight - reaction, short-term memory";
         prompt += "  Shadow Snap - pattern recognition, shape identification";
+        prompt += " LIMIT RESPONSE TO ONLY 2-3 SENTENCES";
         string environment = "You are a supportive coach for the user. They are using this app for brain training and for meditation to relax. Based on the requests, using a gentle tone, be supportive and engaged with the user's prompts when you reply/serve prompts. Limit all responses to AT MOST 3-4 SENTENCES. Your responses should be impactful, but brief. A prompt may ask for recommendations for games for the user to play, you will be supplied the list of games and their strengths in which you can recommend from there.";
         GPT.Prompt(environment, prompt, message => {
             gptSupportMessage.text = message;
