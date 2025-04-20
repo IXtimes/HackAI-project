@@ -376,7 +376,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   statusText: {fileID: 0}
   roundText: {fileID: 0}
-  retryButton: {fileID: 0}
+  holdButton: {fileID: 0}
+  timingResults: []
 --- !u!1 &814959788
 GameObject:
   m_ObjectHideFlags: 0
@@ -573,7 +574,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -5, y: 267}
+  m_AnchoredPosition: {x: -9, y: -5}
   m_SizeDelta: {x: 567.4801, y: 241.8823}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1153762902
@@ -590,7 +591,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   statusText: {fileID: 1592087533}
   roundText: {fileID: 1153762903}
-  retryButton: {fileID: 0}
+  holdButton: {fileID: 0}
+  timingResults: []
 --- !u!114 &1153762903
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -740,7 +742,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   statusText: {fileID: 1592087533}
   roundText: {fileID: 1153762903}
-  retryButton: {fileID: 0}
+  holdButton: {fileID: 0}
+  timingResults: []
 --- !u!114 &1592087533
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -885,14 +888,15 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1847185687}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 10bb181025f2546069a4cccd03bc6ff2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  statusText: {fileID: 0}
-  roundText: {fileID: 0}
-  retryButton: {fileID: 0}
+  statusText: {fileID: 1592087533}
+  roundText: {fileID: 1153762903}
+  holdButton: {fileID: 1847185690}
+  timingResults: []
 --- !u!114 &1847185690
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -938,7 +942,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 11500000, guid: 10bb181025f2546069a4cccd03bc6ff2, type: 3}
-        m_TargetAssemblyTypeName: UnityEngine.Component, UnityEngine
+        m_TargetAssemblyTypeName: UnityEngine.Object, UnityEngine
         m_MethodName: 
         m_Mode: 1
         m_Arguments:
