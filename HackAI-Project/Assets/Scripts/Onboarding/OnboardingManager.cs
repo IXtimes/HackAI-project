@@ -102,25 +102,32 @@ public class OnboardingManager : MonoBehaviour
         }
 
         // Set the onboarding text to the next line of onboarding
-        onboardingText.text = onboardingLines[currentOnboardingLine].line.Replace("<name>", profileManager.playerProfile.name);
+        Sequence textFade = DOTween.Sequence();
+        textFade.Append(onboardingText.DOFade(0f, 0.5f));
+        textFade.AppendCallback(() => {
+            onboardingText.text = onboardingLines[currentOnboardingLine].line.Replace("<name>", profileManager.playerProfile.name);
+        });
+        textFade.Append(onboardingText.DOFade(1f, 0.5f));
 
         // Enable the respective element based on the event 
-        foreach(OnboardingEvent obEvent in onboardingEvents) { 
-            if(obEvent.event_index == currentOnboardingLine)
-                switch(obEvent.event_name) {
-                    case "username":
-                        onboardingNameInput.SetActive(true);
-                        break;
-                    case "profile_picture":
-                        onboardingPhotoInput.SetActive(true);
-                        break;
-                    case "finish":
-                        onboardingSubmit.SetActive(true);
-                        break;
-                }
-        }
+        textFade.AppendCallback(() => {
+            foreach(OnboardingEvent obEvent in onboardingEvents) { 
+                if(obEvent.event_index == currentOnboardingLine)
+                    switch(obEvent.event_name) {
+                        case "username":
+                            onboardingNameInput.SetActive(true);
+                            break;
+                        case "profile_picture":
+                            onboardingPhotoInput.SetActive(true);
+                            break;
+                        case "finish":
+                            onboardingSubmit.SetActive(true);
+                            break;
+                    }
+            }
+        });
 
         // Automatically call the next onboarding line
-        DOTween.Sequence().AppendInterval(onboardingLines[currentOnboardingLine].lineTime).AppendCallback(GetNextOnboardingLine);
+        textFade.AppendInterval(onboardingLines[currentOnboardingLine].lineTime).AppendCallback(GetNextOnboardingLine);
     }
 }
