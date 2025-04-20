@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using DG.Tweening;
 using TMPro;
@@ -16,8 +17,8 @@ public class OnboardingManager : MonoBehaviour
     public string[] onboardingLines;
     public OnboardingEvent[] onboardingEvents;
     Dictionary<string, bool> onboardingEventStatus;
+    ProfileManager profileManager;
     int currentOnboardingLine;
-    Profile onboardedProfile;
     [SerializeField] TextMeshProUGUI onboardingText;
     [SerializeField] GameObject onboardingNameInput;
     [SerializeField] GameObject onboardingPhotoInput;
@@ -36,14 +37,14 @@ public class OnboardingManager : MonoBehaviour
         onboardingEventStatus["profile_picture"] = false;
         onboardingEventStatus["finish"] = false;
 
-        // Create an empty profile
-        onboardedProfile = new Profile();
+        // Get the profile manager
+        profileManager = ProfileManager.Instance;
 
         // Set onboarding to the first line
         onboardingText.text = onboardingLines[currentOnboardingLine];
 
         // Automatically call the next onboarding line
-        DOTween.Sequence().AppendInterval(3f).AppendCallback(GetNextOnboardingLine);
+        DOTween.Sequence().AppendInterval(0.5f).AppendCallback(GetNextOnboardingLine);
     }
 
     public void CompleteEvent(string eventName) {
@@ -54,15 +55,17 @@ public class OnboardingManager : MonoBehaviour
                     case "username":
                         // Set the username
                         onboardingNameInput.SetActive(false);
-                        onboardedProfile.name = onboardingNameInput.transform.GetChild(0).GetComponent<TMP_InputField>().text;
+                        profileManager.playerProfile.name = onboardingNameInput.transform.GetChild(0).GetComponent<TMP_InputField>().text;
                         break;
                     case "profile_picture":
                         // Set the profile picture
                         onboardingPhotoInput.SetActive(false);
-                        onboardedProfile.profilePicture = onboardingPhotoInput.GetComponent<PhotoAlbumInterface>().profileTexture;
+                        profileManager.playerProfile.profilePicture = onboardingPhotoInput.GetComponent<PhotoAlbumInterface>().profileTexture;
                         break;
                     case "finish":
                         onboardingSubmit.SetActive(false);
+                        string savePath = Path.Combine(Application.persistentDataPath, "myProfile.json");
+                        profileManager.SaveProfile(savePath);
                         break;
                 }
         }
@@ -92,7 +95,7 @@ public class OnboardingManager : MonoBehaviour
         }
 
         // Set the onboarding text to the next line of onboarding
-        onboardingText.text = onboardingLines[currentOnboardingLine].Replace("<name>", onboardedProfile.name);
+        onboardingText.text = onboardingLines[currentOnboardingLine].Replace("<name>", profileManager.playerProfile.name);
 
         // Enable the respective element based on the event 
         foreach(OnboardingEvent obEvent in onboardingEvents) { 
@@ -111,6 +114,6 @@ public class OnboardingManager : MonoBehaviour
         }
 
         // Automatically call the next onboarding line
-        DOTween.Sequence().AppendInterval(3f).AppendCallback(GetNextOnboardingLine);
+        DOTween.Sequence().AppendInterval(0.5f).AppendCallback(GetNextOnboardingLine);
     }
 }

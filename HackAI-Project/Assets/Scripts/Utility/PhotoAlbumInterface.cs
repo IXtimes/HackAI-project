@@ -8,6 +8,11 @@ public class PhotoAlbumInterface : MonoBehaviour
     public RawImage profilePreview; // Assign in Inspector
     public Texture2D profileTexture;
 
+    void Awake()
+    {
+        profileTexture = profilePreview.texture as Texture2D;   
+    }
+
     public void PickImageFromGallery() {
         // Prompt to get an image from the user's gallary
         NativeGallery.GetImageFromGallery(path => {
