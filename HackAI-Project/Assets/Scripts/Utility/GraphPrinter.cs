@@ -54,6 +54,14 @@ public class GraphPrinter : MonoBehaviour
             if(attempts > 100)
                 throw new Exception();
         }
+
+        // If there is no data to render, stop :)
+        if(dataPoints == 0) {
+            tickMarkIndicators[0].text = $"0";
+            tickMarkIndicators[1].text = $"0.5";
+            tickMarkIndicators[2].text = $"1";
+            return;
+        }
         
         // Get at most the last scopes amount of data, first computing the max and min
         int startIndex = Mathf.Max(data.Length - scope, 0);
