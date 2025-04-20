@@ -5,6 +5,21 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
+public enum Games {
+    ZenMelody,
+    BreathSync,
+    ClearSight,
+    ShadowSnap
+}
+
+public enum Moods {
+    Happy,
+    Sad,
+    Neutral,
+    Angry,
+    Confused
+}
+
 public class GameData {
     public string name;
     public List<float> data;
@@ -21,6 +36,7 @@ public class Profile {
     public List<GameData> gameHistory;
     public List<List<int>> moodData;
     public int currentStreak; 
+    public long activityTimestamp;
 
     public Profile() {
         name = "";
@@ -35,6 +51,7 @@ public class Profile {
         );
 
         currentStreak = 0;
+        activityTimestamp = System.DateTimeOffset.UtcNow.ToUnixTimeSeconds();
     }
 }
 
@@ -57,6 +74,7 @@ public class SerializableProfile
     public List<List<int>> moodData;
 
     public int currentStreak;
+    public long activityTimestamp;
 }
 
 public class ProfileManager : MonoBehaviour
@@ -86,6 +104,13 @@ public class ProfileManager : MonoBehaviour
 
     public void SaveProfile(string savePath)
     {
+        // First, check if we increment the streak
+        float timeSinceLastStreak = Mathf.Abs(playerProfile.activityTimestamp - System.DateTimeOffset.UtcNow.ToUnixTimeSeconds());
+        if(timeSinceLastStreak >= 86400) {
+            playerProfile.activityTimestamp = System.DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+            playerProfile.currentStreak++;
+        }
+
         // Save profile picture to disk
         string imagePath = Path.Combine(Application.persistentDataPath, playerProfile.name + "_pic.png");
         if (playerProfile.profilePicture != null)
@@ -114,7 +139,8 @@ public class ProfileManager : MonoBehaviour
             personalLows = new List<float>(playerProfile.personalLows),
             gameHistory = serialGameHistory,
             moodData = new List<List<int>>(playerProfile.moodData),
-            currentStreak = playerProfile.currentStreak
+            currentStreak = playerProfile.currentStreak,
+            activityTimestamp = playerProfile.activityTimestamp
         };
 
         string json = JsonUtility.ToJson(sp, true);
@@ -160,6 +186,9 @@ public class ProfileManager : MonoBehaviour
             moodData.Add(new List<int> { 0, 0, 0, 0, 0 });  // Default entry
         }
 
+        // Check if the current timestamp is 48 hours after the last logged timestamp.
+        bool breakStreak = Mathf.Abs(sp.activityTimestamp - System.DateTimeOffset.UtcNow.ToUnixTimeSeconds()) >= 86400 * 2;
+
         // Build final profile
         Profile profile = new Profile
         {
@@ -169,7 +198,8 @@ public class ProfileManager : MonoBehaviour
             personalLows = new List<float>(sp.personalLows),
             gameHistory = gameHistory,
             moodData = moodData,
-            currentStreak = sp.currentStreak
+            currentStreak = !breakStreak ? sp.currentStreak : 0,
+            activityTimestamp = sp.activityTimestamp
         };
 
         playerProfile = profile;
