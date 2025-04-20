@@ -855,12 +855,17 @@ MonoBehaviour:
   - {fileID: 2102063586}
   barGroup: {fileID: 1339246316}
   data:
-  - 1
-  - 2
-  - 3
-  - 2
-  - 4
-  scope: 7
+  - amount: 2
+    barColor: {r: 1, g: 0, b: 0, a: 1}
+  - amount: 5
+    barColor: {r: 1, g: 0.52359486, b: 0, a: 1}
+  - amount: 3
+    barColor: {r: 1, g: 0, b: 0, a: 1}
+  - amount: 6
+    barColor: {r: 0, g: 1, b: 0.015245676, a: 1}
+  - amount: 1
+    barColor: {r: 0, g: 0.15949917, b: 1, a: 1}
+  initalScope: 7
 --- !u!114 &1522382186
 MonoBehaviour:
   m_ObjectHideFlags: 0
