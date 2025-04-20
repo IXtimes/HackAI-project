@@ -5,13 +5,14 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
+[System.Serializable]
 public enum Games {
     ZenMelody,
     BreathSync,
     ClearSight,
     ShadowSnap
 }
-
+[System.Serializable]
 public enum Moods {
     Happy,
     Sad,
@@ -34,7 +35,7 @@ public class Profile {
     public List<float> personalBests;
     public List<float> personalLows;
     public List<GameData> gameHistory;
-    public List<List<int>> moodData;
+    public List<int> moodData;
     public int currentStreak; 
     public long activityTimestamp;
 
@@ -42,13 +43,10 @@ public class Profile {
         name = "";
         profilePicture = null;
 
-        personalBests = new List<float>();
-        personalLows = new List<float>();
+        personalBests = new List<float>{0f, 0f, 0f, 0f};
+        personalLows = new List<float>{0f, 0f, 0f, 0f};
         gameHistory = new List<GameData>();
-        moodData = new List<List<int>>();
-        moodData.Add(
-            new List<int>{0, 0, 0, 0, 0}
-        );
+        moodData = new List<int>{0, 0, 0, 0, 0};
 
         currentStreak = 0;
         activityTimestamp = System.DateTimeOffset.UtcNow.ToUnixTimeSeconds();
@@ -71,7 +69,7 @@ public class SerializableProfile
     public List<float> personalBests;
     public List<float> personalLows;
     public List<SerializableGameData> gameHistory;
-    public List<List<int>> moodData;
+    public List<int> moodData;
 
     public int currentStreak;
     public long activityTimestamp;
@@ -138,7 +136,7 @@ public class ProfileManager : MonoBehaviour
             personalBests = new List<float>(playerProfile.personalBests),
             personalLows = new List<float>(playerProfile.personalLows),
             gameHistory = serialGameHistory,
-            moodData = new List<List<int>>(playerProfile.moodData),
+            moodData = new List<int>(playerProfile.moodData),
             currentStreak = playerProfile.currentStreak,
             activityTimestamp = playerProfile.activityTimestamp
         };
@@ -179,13 +177,6 @@ public class ProfileManager : MonoBehaviour
             });
         }
 
-        List<List<int>> moodData = sp.moodData != null ? new List<List<int>>(sp.moodData) : new List<List<int>>();
-
-        if (moodData.Count == 0)
-        {
-            moodData.Add(new List<int> { 0, 0, 0, 0, 0 });  // Default entry
-        }
-
         // Check if the current timestamp is 48 hours after the last logged timestamp.
         bool breakStreak = Mathf.Abs(sp.activityTimestamp - System.DateTimeOffset.UtcNow.ToUnixTimeSeconds()) >= 86400 * 2;
 
@@ -197,7 +188,7 @@ public class ProfileManager : MonoBehaviour
             personalBests = new List<float>(sp.personalBests),
             personalLows = new List<float>(sp.personalLows),
             gameHistory = gameHistory,
-            moodData = moodData,
+            moodData = sp.moodData,
             currentStreak = !breakStreak ? sp.currentStreak : 0,
             activityTimestamp = sp.activityTimestamp
         };

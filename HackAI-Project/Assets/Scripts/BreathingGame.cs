@@ -12,13 +12,13 @@ public class BreathingGame : MonoBehaviour
     [SerializeField] TextMeshProUGUI resultText;
     [SerializeField] GameObject breatheButton;
     [SerializeField] GameObject finishButton;
+    [SerializeField] GameResultController gameResultController;
     float internalTimer;
     float startTime;
     bool breathingIn;
     public List<float> resultData;
     public Vector2 breatheInTime;
     bool gameActive = false;
-    public UnityEvent endGame;
 
     public void SetupGame() {
         // Activate the game
@@ -88,6 +88,7 @@ public class BreathingGame : MonoBehaviour
         gameActive = false;
 
         // Callback to results screen
-        endGame?.Invoke();
+        gameResultController.committedData = resultData;
+        gameResultController.ShowResults();
     }
 }
